@@ -1,6 +1,8 @@
 package edu.cmu.cs.cs214.rec02;
 
 import java.util.Arrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A resizable-array implementation of the {@link IntQueue} interface. The head of
@@ -14,6 +16,7 @@ import java.util.Arrays;
  * @author Ye Lu
  */
 public class ArrayIntQueue implements IntQueue {
+    private static final Logger logger = LogManager.getLogger(ArrayIntQueue.class);
 
     /**
      * An array holding this queue's data
@@ -46,6 +49,7 @@ public class ArrayIntQueue implements IntQueue {
 
     /** {@inheritDoc} */
     public void clear() {
+        logger.debug("Clearing the queue");
         Arrays.fill(elementData, 0);
         size = 0;
         head = 0;
@@ -54,9 +58,11 @@ public class ArrayIntQueue implements IntQueue {
     /** {@inheritDoc} */
     public Integer dequeue() {
         if (isEmpty()) {
+            logger.warn("Attempted to dequeue from an empty queue");
             return null;
         }
         Integer value = elementData[head];
+        logger.info("Dequeued value: {}", value);
         head = (head + 1) % elementData.length;
         size--;
         return value;
@@ -64,6 +70,7 @@ public class ArrayIntQueue implements IntQueue {
 
     /** {@inheritDoc} */
     public boolean enqueue(Integer value) {
+        logger.debug("Enqueuing value: {}", value);
         ensureCapacity();
         int tail = (head + size) % elementData.length;
         elementData[tail] = value;
@@ -73,15 +80,20 @@ public class ArrayIntQueue implements IntQueue {
 
     /** {@inheritDoc} */
     public boolean isEmpty() {
-        return size == 0;
+        boolean empty = size == 0;
+        logger.trace("Queue is empty: {}", empty);
+        return empty;
     }
 
     /** {@inheritDoc} */
     public Integer peek() {
         if (isEmpty()) {
+            logger.warn("Attempted to peek at an empty queue");
             return null;
         }
-        return elementData[head];
+        Integer value = elementData[head];
+        logger.info("Peeked value: {}", value);
+        return value;
     }
 
     /** {@inheritDoc} */
@@ -95,6 +107,7 @@ public class ArrayIntQueue implements IntQueue {
      */
     private void ensureCapacity() {
         if (size == elementData.length) {
+            logger.debug("Ensuring capacity. Current size: {}", size);
             int oldCapacity = elementData.length;
             int newCapacity = 2 * oldCapacity + 1;
             int[] newData = new int[newCapacity];

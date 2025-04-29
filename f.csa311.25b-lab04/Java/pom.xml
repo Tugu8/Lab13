@@ -30,6 +30,17 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/LinkedIntQueue.jar</systemPath>
         </dependency>
+        <!-- Log4j dependencies -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.20.0</version>
+        </dependency>
     </dependencies>
 
     <build>
