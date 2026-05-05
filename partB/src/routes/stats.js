@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const statsRepo = require('../repositories/statsRepo');
 
-// Statistics endpoint — Feature 5 (дараагийн commit-д)
-router.get('/', (req, res) => res.json({ data: { total: 0, done: 0, overdue: 0 } }));
+router.get('/', (req, res) => {
+  res.json({ data: statsRepo.getSummary() });
+});
 
 module.exports = router;
