@@ -37,23 +37,4 @@ router.delete('/:id', (req, res) => {
   res.status(200).json({ data: null, meta: { message: 'Label deleted' } });
 });
 
-// Task-д label нэмэх/хасах
-router.post('/tasks/:taskId/labels/:labelId', (req, res) => {
-  try {
-    service.addLabelToTask(Number(req.params.taskId), Number(req.params.labelId));
-    res.status(200).json({ data: null, meta: { message: 'Label added to task' } });
-  } catch (err) {
-    res.status(err.status || 500).json({ error: err.message });
-  }
-});
-
-router.delete('/tasks/:taskId/labels/:labelId', (req, res) => {
-  try {
-    service.removeLabelFromTask(Number(req.params.taskId), Number(req.params.labelId));
-    res.status(200).json({ data: null, meta: { message: 'Label removed from task' } });
-  } catch (err) {
-    res.status(err.status || 500).json({ error: err.message });
-  }
-});
-
 module.exports = router;
