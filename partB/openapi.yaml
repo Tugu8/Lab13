@@ -1,0 +1,316 @@
+openapi: 3.0.3
+info:
+  title: Personal Task Tracker API
+  version: 1.0.0
+  description: Task CRUD, label management, statistics — Node.js + Express + SQLite
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: tasks
+  - name: labels
+  - name: stats
+
+paths:
+  /tasks:
+    get:
+      tags: [tasks]
+      summary: Get all tasks
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Title/description search
+        - in: query
+          name: priority
+          schema: { type: string, enum: [high, medium, low] }
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, done] }
+        - in: query
+          name: label
+          schema: { type: string }
+          description: Filter by label name
+      responses:
+        '200':
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/TaskWithLabels' }
+                  meta:
+                    type: object
+                    properties:
+                      total: { type: integer }
+
+    post:
+      tags: [tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TaskInput' }
+      responses:
+        '201':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Task' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /tasks/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+    get:
+      tags: [tasks]
+      summary: Get task by ID
+      responses:
+        '200':
+          description: Task with labels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/TaskWithLabels' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [tasks]
+      summary: Update task
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TaskUpdate' }
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Task' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [tasks]
+      summary: Delete task
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{id}/labels/{labelId}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+      - in: path
+        name: labelId
+        required: true
+        schema: { type: integer }
+
+    post:
+      tags: [tasks]
+      summary: Add label to task
+      responses:
+        '200':
+          description: Label added
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [tasks]
+      summary: Remove label from task
+      responses:
+        '200':
+          description: Label removed
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /labels:
+    get:
+      tags: [labels]
+      summary: Get all labels
+      responses:
+        '200':
+          description: Label list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Label' }
+
+    post:
+      tags: [labels]
+      summary: Create label
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LabelInput' }
+      responses:
+        '201':
+          description: Created label
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Label' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Label name already exists
+
+  /labels/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+
+    put:
+      tags: [labels]
+      summary: Update label
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LabelInput' }
+      responses:
+        '200':
+          description: Updated label
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [labels]
+      summary: Delete label
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /stats:
+    get:
+      tags: [stats]
+      summary: Get task statistics
+      responses:
+        '200':
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      total:   { type: integer }
+                      done:    { type: integer }
+                      pending: { type: integer }
+                      overdue: { type: integer }
+                      by_priority:
+                        type: object
+                        properties:
+                          high:   { type: integer }
+                          medium: { type: integer }
+                          low:    { type: integer }
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:          { type: integer }
+        title:       { type: string }
+        description: { type: string }
+        status:      { type: string, enum: [pending, done] }
+        priority:    { type: string, enum: [high, medium, low] }
+        due_date:    { type: string, format: date, nullable: true }
+        created_at:  { type: string, format: date-time }
+        updated_at:  { type: string, format: date-time }
+
+    TaskWithLabels:
+      allOf:
+        - $ref: '#/components/schemas/Task'
+        - type: object
+          properties:
+            labels:
+              type: array
+              items: { $ref: '#/components/schemas/Label' }
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:       { type: string, maxLength: 255 }
+        description: { type: string }
+        priority:    { type: string, enum: [high, medium, low], default: medium }
+        due_date:    { type: string, format: date, nullable: true }
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:       { type: string, maxLength: 255 }
+        description: { type: string }
+        status:      { type: string, enum: [pending, done] }
+        priority:    { type: string, enum: [high, medium, low] }
+        due_date:    { type: string, format: date, nullable: true }
+
+    Label:
+      type: object
+      properties:
+        id:    { type: integer }
+        name:  { type: string }
+        color: { type: string, pattern: '^#[0-9a-fA-F]{6}$' }
+
+    LabelInput:
+      type: object
+      required: [name]
+      properties:
+        name:  { type: string, maxLength: 50 }
+        color: { type: string, pattern: '^#[0-9a-fA-F]{6}$', default: '#6366f1' }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
